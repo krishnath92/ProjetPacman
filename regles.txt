@@ -1,0 +1,27 @@
+                                   //////Les règles de PACMAN//////
+
+
+1/Le joueur doit choisir un niveau entre facile, moyen et difficile. Plus le niveau sera élevé plus les fantômes seront plus rapide et plus le niveaux sera facile plus vous aurez de vie.
+
+2/Pac-Man bouge en fonction des touches SDLK que vous toucherez
+
+3/Pac-Man peut utiliser le tunnel pour se trouver de l'autre coté 
+
+4/Pac-Man peut lui aussi mangez les fantômes à une condition il doit être en mode 'boost' pour cela vous devrez prendre les bonus qui sont dans le plateau mais attention il peut parcourir que 20 cases en mode 'boost'.
+
+5/Lorsque le Pac-Man aura mangez le bonus les fantômes essayeront de fuir et si vous les mangez ils réapparaitront à leur position initial. 
+
+6/Tant que Pac-Man aura une vie il apparaitra a sa position initial sinon le jeu se fermera.
+
+7/Attention même si vous ne bougez pas les fantômes eux bougent !!! sauf si les fantômes sont coincées ou si vous changez de touche devant un mur !
+
+8/ Pour gagner vous devez manger tout les points mais pas seulement ! Vous devez aussi finir les 3 maps.
+
+9/Les points restant seront affichés dans l'invite de commande.
+
+APPUYEZ ENTRER POUR ALLER AU MENU
+
+
+
+
+

@@ -1,0 +1,305 @@
+    /******************************************************************************/
+/* MAIN.c                                                                     */
+/******************************************************************************/
+#include "./main.h"
+#include "../lib/libgraphique.h"
+
+/******************************************************************************/
+/*FONCTION*/
+int menu_jeu();
+int demande_classique(int, int);
+void graphique(Partie p, int hauteur_fenetre, int largeur_fenetre, int fenetre_pixel);
+void presentation_menu();
+void pacman_deplacement(Partie p);
+
+
+/******************************************************************************/
+/* MAIN                                                                       */
+/******************************************************************************/
+int main(int argc, char **argv)
+/* argc indique le nombre d'arguments,
+   argv est un tableau de mots contenant ces arguments. */
+    {
+
+	
+    Partie p;      // la structure contenant les données d'une partie
+    int i,j;
+    /** Traitement des arguments **************************************************/
+    if(argc!=2) // Si le nombre d'arguments est différent de 2
+        {
+        printf("Usage: %s fichier_plan\n", argv[0]); // mode d'emploi et sortie
+        return 0;
+        }
+    /******************************************************************************/
+
+    /* Chargement du plan à partir du fichier fourni en paramètre                 */
+    printf("Chargement du plan...\n");
+    p = charge_plan(argv[1]);
+    /* Si problème lors du chargement du plan...                                  */
+    if(p.plateau == NULL)
+        return 1;
+
+#if DEBUG==1 //Ceci est un drapeau à activer/désactiver dans main.h
+    /* Affichage du plan lu                                                       */
+    printf("Affichage du plan...\n");
+    for(i=0;i!=p.L;i++)
+        {
+        for(j=0;j!=p.C;j++)
+            printf("%c",p.plateau[i][j]);
+        printf("\n");
+        }
+#endif
+     
+/******************************************************************************/
+/* A PARTIR D'ICI...C'EST A VOUS DE JOUER!                                    */
+/******************************************************************************/
+	int fenetre_pixel=25;
+	int hauteur_fenetre = p.L*fenetre_pixel;
+	int largeur_fenetre = p.C*fenetre_pixel;
+	ouvrir_fenetre(largeur_fenetre,hauteur_fenetre);
+	
+	int menu;
+	system("clear");
+	menu = menu_jeu();	
+	system("clear");
+	if (menu == 1)
+    {
+        int fenetre_pixel=25;
+        int hauteur_fenetre = p.L*fenetre_pixel;
+        int largeur_fenetre = p.C*fenetre_pixel;
+        ouvrir_fenetre(largeur_fenetre,hauteur_fenetre);
+        graphique(p, hauteur_fenetre, largeur_fenetre, fenetre_pixel);
+        while(1)
+        {
+            pacman_deplacement(p);
+        }
+
+    }
+	actualiser();	 
+	attendre_clic() ;
+	fermer_fenetre() ;
+    return 0 ;
+    }
+
+	
+	
+//fonction qui recoit le choix de l'utilisateur
+int demande_classique(int a, int b)
+{
+    int choix;
+    
+   	do
+    	{
+        	printf("\nchoisissez entre %d et %d : ", a, b);
+            //envoie ce que l'utilisateur a choisis dans l'adresse choix
+          	scanf("%d%*[1-3]",&choix);
+		    scanf("%*[^\n]");
+		    getchar();
+
+		    printf("\n");
+		// tant que le choix est entre 1 et 3 resté dans la boucle do 
+    	}while (choix < a || choix > b);
+    //retourne le choix 
+    return choix;
+}
+
+//presentation avant le lancement du jeu 
+void presentation_menu()
+{
+	    printf("\n\t\t\t*****************\n");
+		printf("\t\t\t*   Bienvenue   *\n");
+		printf("\t\t\t*  dans le jeu  *\n");
+		printf("\t\t\t*     Pacman     *\n");
+		printf("\t\t\t*****************\n");
+	
+	       	printf("\n\n MENU PRINCIPAL \n\n");
+	        printf(" 1. Jouer\n");
+	        printf(" 2. règles\n");
+	       	printf(" 3. Quitter\n");	
+}
+//fonction qui va agir selon les choix 
+int menu_jeu()
+{
+	FILE *f;
+	int menu;
+	char c;
+	do
+	{
+		presentation_menu();
+	    //recupère le choix 
+		menu = demande_classique(1,3);
+		//ouvrir le fichier contenant les règles du jeu 
+		if(menu == 2)
+		{
+			f = fopen("regles.txt","r");
+			system("clear");
+			//boucle infini pour lire les caractères dans le texte
+			while(1) 
+			{
+      				c = fgetc(f);
+      				//si il y'a plus rien a lire on arrete la lecture
+      				if(feof(f)) 
+         				break ;
+      				printf("%c", c);
+      				
+  			} 
+  			//fermer le fichier
+   			fclose(f);
+   			getchar();
+		}
+			
+	}while (menu == 2);
+	//ferme la fenetre si on veut quitter 
+    if (menu == 3)
+	{
+		system("clear");
+		fermer_fenetre();
+	}
+	return menu;
+}
+
+void graphique(Partie p, int hauteur_fenetre, int largeur_fenetre, int fenetre_pixel)
+{
+	int a,b;
+	//definit la hauteur de la fenetre selon fenetre pixel 
+    int quel_fantome = 0;
+    //definit la largeur de la fenetre selon fenetre pixel 
+	//ouvre la fenetre
+	//placement du point pour chaque caractère 
+	Point dessin;
+	dessin.y=0;
+	//incrémentation colonne
+    for(a=0;a<=p.C+(fenetre_pixel/5);a++)
+    {   
+        dessin.x=0;
+        //incrémentation ligne 
+        for(b=0;b<=p.L;b++)
+	     {
+			//si on repere une etoile dessiner un rectangle bleu
+	        if((p.plateau[a][b]) == '*')
+	        {
+		       dessiner_rectangle(dessin,largeur_fenetre,hauteur_fenetre,blue);
+	        }
+	        else if((p.plateau[a][b]) == '.')
+	        {
+				Point dessin_rond;
+	   	       //calcule pour que le point du cercle soit au milieu 
+		       dessin_rond.x = dessin.x + (fenetre_pixel/2);
+		       dessin_rond.y = dessin.y + (fenetre_pixel/2);
+			   dessiner_rectangle(dessin,hauteur_fenetre,largeur_fenetre,noir);
+		       dessiner_disque(dessin_rond,(fenetre_pixel/8),white);
+		   }
+				
+	        //si on repere B dessiner un rectangle blanc
+	        else if((p.plateau[a][b]) == 'B')
+	        {
+				Point dessin_rond;
+	   	       //calcule pour que le point du cercle soit au milieu 
+		       dessin_rond.x = dessin.x + (fenetre_pixel/2);
+		       dessin_rond.y = dessin.y + (fenetre_pixel/2);
+			   dessiner_rectangle(dessin,hauteur_fenetre,largeur_fenetre,noir);
+		       dessiner_disque(dessin_rond,(fenetre_pixel/4),white);	        
+		    }
+	        //si on repere F dessiner un rectangle purple
+	        else if((p.plateau[a][b]) == 'F')
+	        {
+				if(quel_fantome==0)
+				{
+		        Point dessin_rond;
+	   	        //calcule pour que le point du cercle soit au milieu 
+		        dessin_rond.x = dessin.x + (fenetre_pixel/2);
+		        dessin_rond.y = dessin.y + (fenetre_pixel/2);
+			    dessiner_rectangle(dessin,hauteur_fenetre,largeur_fenetre,noir);
+		        dessiner_disque(dessin_rond,(fenetre_pixel/2)-3,magenta);
+				}
+				else if(quel_fantome==1)
+				{
+		        Point dessin_rond;
+	   	        //calcule pour que le point du cercle soit au milieu 
+		        dessin_rond.x = dessin.x + (fenetre_pixel/2);
+		        dessin_rond.y = dessin.y + (fenetre_pixel/2);
+			    dessiner_rectangle(dessin,hauteur_fenetre,largeur_fenetre,noir);
+		        dessiner_disque(dessin_rond,(fenetre_pixel/2)-3,orange);
+				}
+				else if(quel_fantome==2)
+				{
+		        Point dessin_rond;
+	   	        //calcule pour que le point du cercle soit au milieu 
+		        dessin_rond.x = dessin.x + (fenetre_pixel/2);
+		        dessin_rond.y = dessin.y + (fenetre_pixel/2);
+			    dessiner_rectangle(dessin,hauteur_fenetre,largeur_fenetre,noir);
+		        dessiner_disque(dessin_rond,(fenetre_pixel/2)-3,lightblue);
+				}
+				else if(quel_fantome==3)
+				{
+		        Point dessin_rond;
+	   	        //calcule pour que le point du cercle soit au milieu 
+		        dessin_rond.x = dessin.x + (fenetre_pixel/2);
+		        dessin_rond.y = dessin.y + (fenetre_pixel/2);
+			    dessiner_rectangle(dessin,hauteur_fenetre,largeur_fenetre,noir);
+		        dessiner_disque(dessin_rond,(fenetre_pixel/2)-3,red);
+				}
+				quel_fantome++;
+	        }       
+	        //si on repere rien dessiner un rectangle noir
+            else if((p.plateau[a][b]) == ' ')
+	        {
+		       dessiner_rectangle(dessin,hauteur_fenetre,largeur_fenetre,noir);
+	        }
+	        //si on repere pacman alors dessiner un cercle 
+	        if((p.plateau[a][b]) == 'P')
+	        {
+	   	       Point dessin_rond;
+	   	       //calcule pour que le point du cercle soit au milieu 
+		       dessin_rond.x = dessin.x + (fenetre_pixel/2);
+		       dessin_rond.y = dessin.y + (fenetre_pixel/2);
+		       dessiner_disque(dessin_rond,(fenetre_pixel/2)-3,yellow);
+	        }
+	        dessin.x += fenetre_pixel;
+        }
+       dessin.y += fenetre_pixel;
+	}
+	actualiser();
+}
+
+void pacman_deplacement(Partie p)
+{
+	
+
+	int touche = attendre_touche();
+	if(touche == SDLK_DOWN) 
+	{
+		p.plateau[(p.pacman.l)][(p.pacman.c)] = ' ';
+		dessiner_rectangle(
+		p.pacman.l += 1;
+		p.plateau[(p.pacman.l)][(p.pacman.c)] = 'P';
+		actualiser();
+	}
+	else if(touche == SDLK_UP) 
+	{
+		p.plateau[(p.pacman.l)][(p.pacman.c)] = ' ';
+		p.pacman.l -= 1;
+		p.plateau[(p.pacman.l)][(p.pacman.c)] = 'P';
+		actualiser();
+	}
+	else if(touche == SDLK_RIGHT)
+	{
+		
+		p.plateau[(p.pacman.l)][(p.pacman.c)] = ' ';
+        p.pacman.c += 1;
+		p.plateau[(p.pacman.l)][(p.pacman.c)] = 'P';
+		actualiser();
+
+	}
+	else if(touche == SDLK_LEFT)
+	{
+		p.plateau[(p.pacman.l)][(p.pacman.c)] = ' ';
+        p.pacman.c -= 1;
+		p.plateau[(p.pacman.l)][(p.pacman.c)] = 'P';
+		actualiser();
+	}	
+
+	
+
+}
+
